@@ -3,19 +3,19 @@
 #pragma once
 //#include "AnimGraphNode_Base.h"
 #include "AnimGraphNode_SkeletalControlBase.h"
-#include "AnimNode_MirrorCS.h"
-#include "AnimGraphNode_MirrorCS.generated.h"
+#include "AnimNode_FullMirrorCS.h"
+#include "AnimGraphNode_FullMirrorCS.generated.h"
 /**
  * 
  */
 /*class that holds Editor version of the AnimGraph Node Mirror Pose, along its tittle, tooltip, Node Color, and the category of the node*/
 UCLASS()
-class MIRRORANIMATIONSYSTEMEDITOR_API UAnimGraphNode_MirrorCS : public UAnimGraphNode_SkeletalControlBase
+class MIRRORANIMATIONSYSTEMEDITOR_API UAnimGraphNode_FullMirrorCS : public UAnimGraphNode_SkeletalControlBase
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = Settings)
-		FAnimNode_MirrorCS Node;
+		FAnimNode_FullMirrorCS Node;
 	/*
 	//~ Begin UEdGraphNode Interface.
 	virtual FLinearColor GetNodeTitleColor() const override;
@@ -27,12 +27,12 @@ class MIRRORANIMATIONSYSTEMEDITOR_API UAnimGraphNode_MirrorCS : public UAnimGrap
 	virtual FString GetNodeCategory() const override;
 	//~ End UAnimGraphNode_Base Interface
 
-	UAnimGraphNode_MirrorCS(const FObjectInitializer& ObjectInitializer);
+	UAnimGraphNode_FullMirrorCS(const FObjectInitializer& ObjectInitializer);
 	*/
 
 
 public:
-	UAnimGraphNode_MirrorCS(const FObjectInitializer& ObjectInitializer);
+	UAnimGraphNode_FullMirrorCS(const FObjectInitializer& ObjectInitializer);
 
 	// UEdGraphNode interface
 	virtual FLinearColor GetNodeTitleColor() const override;

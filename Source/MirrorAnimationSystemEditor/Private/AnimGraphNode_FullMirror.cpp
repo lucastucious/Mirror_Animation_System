@@ -1,32 +1,32 @@
 // Copyright 2017-2021 Rexocrates. All Rights Reserved.
-#include "AnimGraphNode_Mirror.h"
+#include "AnimGraphNode_FullMirror.h"
 #include "MirrorAnimationSystemEditor.h"
 
 
 #define LOCTEXT_NAMESPACE "A3Nodes"
 
-UAnimGraphNode_Mirror::UAnimGraphNode_Mirror(const FObjectInitializer& ObjectInitializer)
+UAnimGraphNode_FullMirror::UAnimGraphNode_FullMirror(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
 
 }
 
-FLinearColor UAnimGraphNode_Mirror::GetNodeTitleColor() const
+FLinearColor UAnimGraphNode_FullMirror::GetNodeTitleColor() const
 {
 	return FLinearColor::Red;
 }
 
-FText UAnimGraphNode_Mirror::GetTooltipText() const
+FText UAnimGraphNode_FullMirror::GetTooltipText() const
 {
 	return LOCTEXT("Mirrors_the_designated_bones", "Mirrors the pose based on the designated Mirror Table");
 }
 
-FText UAnimGraphNode_Mirror::GetNodeTitle(ENodeTitleType::Type TitleType) const
+FText UAnimGraphNode_FullMirror::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	return LOCTEXT("Mirror_Pose", "Mirror Pose");
 }
 
-FString UAnimGraphNode_Mirror::GetNodeCategory() const
+FString UAnimGraphNode_FullMirror::GetNodeCategory() const
 {
 	return TEXT("Tools");
 }

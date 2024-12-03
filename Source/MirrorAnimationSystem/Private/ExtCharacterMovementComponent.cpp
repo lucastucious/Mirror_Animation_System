@@ -243,12 +243,12 @@ void UExtCharacterMovementComponent::PerformMovement(float DeltaSeconds)
 						FTransform TmpRootMootTr = RootMotionParams.GetRootMotionTransform();
 						TmpRootMootTr.Mirror(MirrorAxis, FlipAxis);
 						TmpRootMootTr.SetScale3D(TmpRootMootTr.GetScale3D().GetAbs());
-						RootMotionParams.Set(ConvertLocalRootMotionToWorld(TmpRootMootTr));
+						RootMotionParams.Set(ConvertLocalRootMotionToWorld(TmpRootMootTr,DeltaSeconds));
 					}
 					else
 					{
 						// Convert Local Space Root Motion to world space. Do it right before used by physics to make sure we use up to date transforms, as translation is relative to rotation.
-						RootMotionParams.Set(ConvertLocalRootMotionToWorld(RootMotionParams.GetRootMotionTransform()));
+						RootMotionParams.Set(ConvertLocalRootMotionToWorld(RootMotionParams.GetRootMotionTransform(),DeltaSeconds));
 					}
 				}
 
@@ -320,7 +320,7 @@ void UExtCharacterMovementComponent::PerformMovement(float DeltaSeconds)
 		// Update character state based on change from movement
 		UpdateCharacterStateAfterMovement(DeltaSeconds);
 
-		if ((bAllowPhysicsRotationDuringAnimRootMotion || !HasAnimRootMotion()) && !CharacterOwner->IsMatineeControlled())
+		if ((bAllowPhysicsRotationDuringAnimRootMotion || !HasAnimRootMotion()) ) //@TODO: check if not owned by Levelsequence
 		{
 			PhysicsRotation(DeltaSeconds);
 		}

@@ -10,12 +10,12 @@
 
 #include "MirrorTable.h"
 
-#include "AnimNode_MirrorCS.generated.h"
+#include "AnimNode_FullMirrorCS.generated.h"
 
 
 // Component Space version of the Mirror Pose node.
 USTRUCT(BlueprintInternalUseOnly)
-struct MIRRORANIMATIONSYSTEM_API FAnimNode_MirrorCS : public FAnimNode_SkeletalControlBase
+struct MIRRORANIMATIONSYSTEM_API FAnimNode_FullMirrorCS : public FAnimNode_SkeletalControlBase
 {
 	GENERATED_BODY()
 
@@ -29,8 +29,8 @@ struct MIRRORANIMATIONSYSTEM_API FAnimNode_MirrorCS : public FAnimNode_SkeletalC
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MirrorBones)
 	FString Substring_B;
 
-	~FAnimNode_MirrorCS();
-	FAnimNode_MirrorCS();
+	~FAnimNode_FullMirrorCS();
+	FAnimNode_FullMirrorCS();
 
 	// FAnimNode_Base interface
 	virtual void GatherDebugData(FNodeDebugData& DebugData) override;

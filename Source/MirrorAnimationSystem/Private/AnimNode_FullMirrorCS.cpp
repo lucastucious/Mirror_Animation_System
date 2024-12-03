@@ -1,5 +1,5 @@
 // Copyright 2017-2021 Rexocrates. All Rights Reserved.
-#include "AnimNode_MirrorCS.h"
+#include "AnimNode_FullMirrorCS.h"
 #include "MirrorAnimationSystem.h"
 
 #include "AnimationRuntime.h"
@@ -8,16 +8,16 @@
 #include "MASUtils.h"
 
 /////////////////////////////////////////////////////
-// FAnimNode_MirrorCS
+// FAnimNode_FullMirrorCS
 
-FAnimNode_MirrorCS::~FAnimNode_MirrorCS()
+FAnimNode_FullMirrorCS::~FAnimNode_FullMirrorCS()
 {
 	TwinPairs.Empty();
 	NonTwinIDs.Empty();
 	NonTwinFlipAxis.Empty();
 }
 
-FAnimNode_MirrorCS::FAnimNode_MirrorCS() :
+FAnimNode_FullMirrorCS::FAnimNode_FullMirrorCS() :
 CompletlySymmetrical(false)
 {
 	TwinPairs.Empty();
@@ -25,12 +25,12 @@ CompletlySymmetrical(false)
 	NonTwinFlipAxis.Empty();
 }
 
-void FAnimNode_MirrorCS::GatherDebugData(FNodeDebugData& DebugData)
+void FAnimNode_FullMirrorCS::GatherDebugData(FNodeDebugData& DebugData)
 {
 	Super::GatherDebugData(DebugData);
 }
 
-void FAnimNode_MirrorCS::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms)
+void FAnimNode_FullMirrorCS::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms)
 {
 	check(OutBoneTransforms.Num() == 0);
 
@@ -88,7 +88,7 @@ void FAnimNode_MirrorCS::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCo
 			
 		
 
-			// twin 1º
+			// twin 1ï¿½
 			{
 				const FTransform MirrRef = RefTM * TwinMirrorModTM;
 				const FTransform Delta = TwinRefTM.GetRelativeTransform(MirrRef);
@@ -126,7 +126,7 @@ void FAnimNode_MirrorCS::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCo
 				NewCSTMs[TwinBoneIndex] = MirrTM;
 			}
 
-			// twin 2º
+			// twin 2ï¿½
 			{
 				FTransform TwinMirrRef = TwinRefTM * TwinMirrorModTM;
 				const FQuat TwinDeltaQuat = TwinMirrRef.GetRotation().Inverse() * RefTM.GetRotation();
@@ -171,25 +171,25 @@ void FAnimNode_MirrorCS::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseCo
 	}
 }
 
-bool FAnimNode_MirrorCS::IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& RequiredBones)
+bool FAnimNode_FullMirrorCS::IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& RequiredBones)
 {
 	return true;
 }
 
-void FAnimNode_MirrorCS::InitializeBoneReferences(const FBoneContainer& RequiredBones)
+void FAnimNode_FullMirrorCS::InitializeBoneReferences(const FBoneContainer& RequiredBones)
 {
 	Super::InitializeBoneReferences(RequiredBones);
 
 	SetMirrorDataIfDirty(RequiredBones.GetReferenceSkeleton());
 }
 
-void FAnimNode_MirrorCS::Initialize_AnyThread(const FAnimationInitializeContext& Context)
+void FAnimNode_FullMirrorCS::Initialize_AnyThread(const FAnimationInitializeContext& Context)
 {
 	Super::Initialize_AnyThread(Context);
 }
 
 
-void FAnimNode_MirrorCS::SetMirrorDataIfDirty(const FReferenceSkeleton& RefSkeleton)
+void FAnimNode_FullMirrorCS::SetMirrorDataIfDirty(const FReferenceSkeleton& RefSkeleton)
 {
 	if (RefSkeleton.GetNum() == LastBoneNum) return;
 

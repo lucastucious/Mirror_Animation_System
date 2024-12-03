@@ -4,14 +4,14 @@
 #include "Animation/AnimNodeBase.h"
 #include "Animation/AnimInstanceProxy.h"
 #include "MirrorTable.h"
-#include "AnimNode_Mirror.generated.h"
+#include "AnimNode_FullMirror.generated.h"
 /**
 *
 */
 /*Runtime code for the AnimGraph Node Mirror Pose, 
 takes in a pose in local space and Mirrors each bone according to a Mirror Table*/
 USTRUCT(BlueprintInternalUseOnly)
-struct MIRRORANIMATIONSYSTEM_API FAnimNode_Mirror : public FAnimNode_Base
+struct MIRRORANIMATIONSYSTEM_API FAnimNode_FullMirror : public FAnimNode_Base
 {
 	GENERATED_BODY()
 
@@ -22,7 +22,7 @@ struct MIRRORANIMATIONSYSTEM_API FAnimNode_Mirror : public FAnimNode_Base
 		UMirrorTable* MirrorTable;
 public:
 
-	FAnimNode_Mirror();
+	FAnimNode_FullMirror();
 
 	// FAnimNode_Base interface
 	virtual void Initialize_AnyThread(const FAnimationInitializeContext& Context) override;

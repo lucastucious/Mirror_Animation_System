@@ -20,7 +20,7 @@
 #include "Framework/Docking/TabManager.h"
 #include "EditorStyleSet.h"
 #include "CanvasItem.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "PropertyEditorModule.h"
 #include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"
