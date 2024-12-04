@@ -11,8 +11,7 @@
 
 #if WITH_EDITOR
 #include "AssetToolsModule.h"
-#include "AssetRegistryModule.h"
-#include "Toolkits/AssetEditorManager.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
@@ -153,8 +152,13 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 		int NumMirrorBones = MirrorTable->MirrorBones.Num();
 
 		int NumFrames = MirrorSequence->GetNumberOfFrames();
-		TArray<FRawAnimSequenceTrack> SourceRawAnimDatas = MirrorSequence->GetRawAnimationData();
-		const auto& TrackNames = MirrorSequence->GetAnimationTrackNames();
+		IAnimationDataController& MirrorSequenceController = MirrorSequence->GetController();
+		TArray<FBoneAnimationTrack> SourceBoneAnimData = MirrorSequenceController.GetModel()->GetBoneAnimationTracks();
+		/************* SourceRawAnimDatas should be replaced by SourceBoneAnimData ************/
+		// TArray<FRawAnimSequenceTrack> SourceRawAnimDatas = MirrorSequence->GetRawAnimationData();
+		
+		TArray<FName> TrackNames;
+		MirrorSequenceController.GetModel()->GetBoneTrackNames(TrackNames);
 
 		for (int i = 0; i < NumMirrorBones; i++)
 		{
@@ -180,66 +184,67 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					continue;
 				}
 
-				TArray <FVector> MirrorPosKeys;
-				TArray <FQuat> MirrorRotKeys;
-				TArray <FVector> MirrorScaleKeys;
+				TArray <FVector3f> MirrorPosKeys;
+				TArray <FQuat4f> MirrorRotKeys;
+				TArray <FVector3f> MirrorScaleKeys;
 
-				TArray <FVector> TwinMirrorPosKeys;
-				TArray <FQuat> TwinMirrorRotKeys;
-				TArray <FVector> TwinMirrorScaleKeys;
+				TArray <FVector3f> TwinMirrorPosKeys;
+				TArray <FQuat4f> TwinMirrorRotKeys;
+				TArray <FVector3f> TwinMirrorScaleKeys;
 
 				// Original Bone
 				if (TrackIndex != INDEX_NONE)
 				{
-					auto& MirroredRawTrack = SourceRawAnimDatas[TrackIndex];
+					auto& MirroredRawTrack = SourceBoneAnimData[TrackIndex];
 
 					for (int u = 0; u < NumFrames; u++)
 					{
-						FTransform MirrorTM;
+						FTransform3f MirrorTM;
 
 						bool bSetPos = false;
 						bool bSetRot = false;
 						bool bSetScale = false;
 
-						if (MirroredRawTrack.PosKeys.IsValidIndex(u))
+						if (MirroredRawTrack.InternalTrackData.PosKeys.IsValidIndex(u))
 						{
-							MirrorTM.SetTranslation(MirroredRawTrack.PosKeys[u]);
+							MirrorTM.SetTranslation(MirroredRawTrack.InternalTrackData.PosKeys[u]);
 							bSetPos = true;
 						}
-						if (MirroredRawTrack.RotKeys.IsValidIndex(u))
+						if (MirroredRawTrack.InternalTrackData.RotKeys.IsValidIndex(u))
 						{
-							MirrorTM.SetRotation(MirroredRawTrack.RotKeys[u]);
+							MirrorTM.SetRotation(MirroredRawTrack.InternalTrackData.RotKeys[u]);
 							bSetRot = true;
 						}
-						if (MirroredRawTrack.ScaleKeys.IsValidIndex(u))
+						if (MirroredRawTrack.InternalTrackData.ScaleKeys.IsValidIndex(u))
 						{
-							MirrorTM.SetScale3D(MirroredRawTrack.ScaleKeys[u]);
+							MirrorTM.SetScale3D(MirroredRawTrack.InternalTrackData.ScaleKeys[u]);
 							bSetScale = true;
 						}
 
 						MirrorTM.Mirror(CurrentBone.MirrorAxis, CurrentBone.FlipAxis);
-
-						FRotator BoneNewRotation = MirrorTM.Rotator();
+						
+						
+						FRotator3f BoneNewRotation = MirrorTM.Rotator(); // quaternion to rotator
 
 						BoneNewRotation.Yaw += CurrentBone.RotationOffset.Yaw;
 						BoneNewRotation.Roll += CurrentBone.RotationOffset.Roll;
 						BoneNewRotation.Pitch += CurrentBone.RotationOffset.Pitch;
 
-						MirrorTM.SetRotation(FQuat(BoneNewRotation));
+						MirrorTM.SetRotation(BoneNewRotation.Quaternion());
 						MirrorTM.SetScale3D(MirrorTM.GetScale3D().GetAbs());
 						MirrorTM.NormalizeRotation();
 
 						if (bSetPos)
 						{
-							MirrorPosKeys.Add(MirrorTM.GetTranslation());
+							MirrorPosKeys.Add(FVector3f(MirrorTM.GetTranslation()));
 						}
 						if (bSetRot)
 						{
-							MirrorRotKeys.Add(MirrorTM.GetRotation());
+							MirrorRotKeys.Add(FQuat4f(MirrorTM.GetRotation()));
 						}
 						if (bSetScale)
 						{
-							MirrorScaleKeys.Add(MirrorTM.GetScale3D());
+							MirrorScaleKeys.Add(FVector3f(MirrorTM.GetScale3D()));
 						}
 					}
 				}
@@ -259,62 +264,62 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					RefTM.SetScale3D(RefTM.GetScale3D().GetAbs());
 					RefTM.NormalizeRotation();
 
-					MirrorPosKeys.Add(RefTM.GetTranslation());
-					MirrorRotKeys.Add(RefTM.GetRotation());
+					MirrorPosKeys.Add(FVector3f(RefTM.GetTranslation()));
+					MirrorRotKeys.Add(FQuat4f(RefTM.GetRotation()));
 				}
 
 				// Twin Bone
 				if (TwinTrackIndex != INDEX_NONE)
 				{
-					auto& TwinMirroredRawTrack = SourceRawAnimDatas[TwinTrackIndex];
+					auto& TwinMirroredRawTrack = SourceBoneAnimData[TwinTrackIndex];
 
 					for (int u = 0; u < NumFrames; u++)
 					{
-						FTransform TwinMirrorTM;
+						FTransform3f TwinMirrorTM;
 
 						bool TwinbSetPos = false;
 						bool TwinbSetRot = false;
 						bool TwinbSetScale = false;
 
-						if (TwinMirroredRawTrack.PosKeys.IsValidIndex(u))
+						if (TwinMirroredRawTrack.InternalTrackData.PosKeys.IsValidIndex(u))
 						{
-							TwinMirrorTM.SetTranslation(TwinMirroredRawTrack.PosKeys[u]);
+							TwinMirrorTM.SetTranslation(TwinMirroredRawTrack.InternalTrackData.PosKeys[u]);
 							TwinbSetPos = true;
 						}
-						if (TwinMirroredRawTrack.RotKeys.IsValidIndex(u))
+						if (TwinMirroredRawTrack.InternalTrackData.RotKeys.IsValidIndex(u))
 						{
-							TwinMirrorTM.SetRotation(TwinMirroredRawTrack.RotKeys[u]);
+							TwinMirrorTM.SetRotation(TwinMirroredRawTrack.InternalTrackData.RotKeys[u]);
 							TwinbSetRot = true;
 						}
-						if (TwinMirroredRawTrack.ScaleKeys.IsValidIndex(u))
+						if (TwinMirroredRawTrack.InternalTrackData.ScaleKeys.IsValidIndex(u))
 						{
-							TwinMirrorTM.SetScale3D(TwinMirroredRawTrack.ScaleKeys[u]);
+							TwinMirrorTM.SetScale3D(TwinMirroredRawTrack.InternalTrackData.ScaleKeys[u]);
 							TwinbSetScale = true;
 						}
 
 						TwinMirrorTM.Mirror(CurrentBone.MirrorAxis, CurrentBone.FlipAxis);
 
-						FRotator TwinBoneNewRotation = TwinMirrorTM.Rotator();
+						FRotator3f TwinBoneNewRotation = TwinMirrorTM.Rotator();
 
 						TwinBoneNewRotation.Yaw += CurrentBone.RotationOffset.Yaw;
 						TwinBoneNewRotation.Roll += CurrentBone.RotationOffset.Roll;
 						TwinBoneNewRotation.Pitch += CurrentBone.RotationOffset.Pitch;
 
-						TwinMirrorTM.SetRotation(FQuat(TwinBoneNewRotation));
+						TwinMirrorTM.SetRotation(TwinBoneNewRotation.Quaternion());
 						TwinMirrorTM.SetScale3D(TwinMirrorTM.GetScale3D().GetAbs());
 						TwinMirrorTM.NormalizeRotation();
 
 						if (TwinbSetPos)
 						{
-							TwinMirrorPosKeys.Add(TwinMirrorTM.GetTranslation());
+							TwinMirrorPosKeys.Add(FVector3f(TwinMirrorTM.GetTranslation()));
 						}
 						if (TwinbSetRot)
 						{
-							TwinMirrorRotKeys.Add(TwinMirrorTM.GetRotation());
+							TwinMirrorRotKeys.Add(FQuat4f(TwinMirrorTM.GetRotation()));
 						}
 						if (TwinbSetScale)
 						{
-							TwinMirrorScaleKeys.Add(TwinMirrorTM.GetScale3D());
+							TwinMirrorScaleKeys.Add(FVector3f(TwinMirrorTM.GetScale3D()));
 						}
 					}
 				}
@@ -334,8 +339,8 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					RefTM.SetScale3D(RefTM.GetScale3D().GetAbs());
 					RefTM.NormalizeRotation();
 
-					TwinMirrorPosKeys.Add(RefTM.GetTranslation());
-					TwinMirrorRotKeys.Add(RefTM.GetRotation());
+					TwinMirrorPosKeys.Add(FVector3f(RefTM.GetTranslation()));
+					TwinMirrorRotKeys.Add(FQuat4f(RefTM.GetRotation()));
 				}
 
 				// Original Bone -> Twin Bone
@@ -346,7 +351,9 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					NewTrack.RotKeys = MirrorRotKeys;
 					NewTrack.ScaleKeys = MirrorScaleKeys;
 
-					MirrorSequence->AddNewRawTrack(CurrentBone.TwinBoneName, &NewTrack);
+					//MirrorSequence->AddNewRawTrack(CurrentBone.TwinBoneName, &NewTrack);
+					MirrorSequenceController.AddBoneTrack(CurrentBone.TwinBoneName);
+					MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,NewTrack.PosKeys,NewTrack.RotKeys,NewTrack.ScaleKeys);
 				}
 
 				// Twin Bone -> Original Bone
@@ -357,7 +364,8 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					NewTrack.RotKeys = TwinMirrorRotKeys;
 					NewTrack.ScaleKeys = TwinMirrorScaleKeys;
 
-					MirrorSequence->AddNewRawTrack(CurrentBone.BoneName, &NewTrack);
+					MirrorSequenceController.AddBoneTrack(CurrentBone.BoneName);
+					MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,NewTrack.PosKeys,NewTrack.RotKeys,NewTrack.ScaleKeys);
 				}
 			}
 			else
@@ -369,47 +377,47 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					continue;
 				}
 
-				FRawAnimSequenceTrack MirroredRawTrack = SourceRawAnimDatas[TrackIndex];
+				FBoneAnimationTrack MirroredRawTrack = SourceBoneAnimData[TrackIndex];
 
 				//MirrorAllFrames
-				TArray <FVector> MirrorPosKeys;
-				TArray <FQuat> MirrorRotKeys;
-				TArray <FVector> MirrorScaleKeys;
+				TArray <FVector3f> MirrorPosKeys;
+				TArray <FQuat4f> MirrorRotKeys;
+				TArray <FVector3f> MirrorScaleKeys;
 
 				for (int u = 0; u < NumFrames; u++)
 				{
 					//Mirror Transform
-					FTransform MirrorTM;
+					FTransform3f MirrorTM;
 
 					bool bSetPos = false;
 					bool bSetRot = false;
 					bool bSetScale = false;
 
-					if (MirroredRawTrack.PosKeys.IsValidIndex(u))
+					if (MirroredRawTrack.InternalTrackData.PosKeys.IsValidIndex(u))
 					{
-						MirrorTM.SetTranslation(MirroredRawTrack.PosKeys[u]);
+						MirrorTM.SetTranslation(MirroredRawTrack.InternalTrackData.PosKeys[u]);
 						bSetPos = true;
 					}
-					if (MirroredRawTrack.RotKeys.IsValidIndex(u))
+					if (MirroredRawTrack.InternalTrackData.RotKeys.IsValidIndex(u))
 					{
-						MirrorTM.SetRotation(MirroredRawTrack.RotKeys[u]);
+						MirrorTM.SetRotation(MirroredRawTrack.InternalTrackData.RotKeys[u]);
 						bSetRot = true;
 					}
-					if (MirroredRawTrack.ScaleKeys.IsValidIndex(u))
+					if (MirroredRawTrack.InternalTrackData.ScaleKeys.IsValidIndex(u))
 					{
-						MirrorTM.SetScale3D(MirroredRawTrack.ScaleKeys[u]);
+						MirrorTM.SetScale3D(MirroredRawTrack.InternalTrackData.ScaleKeys[u]);
 						bSetScale = true;
 					}
 
 					MirrorTM.Mirror(CurrentBone.MirrorAxis, CurrentBone.FlipAxis);
 
-					FRotator BoneNewRotation = MirrorTM.Rotator();
+					FRotator3f BoneNewRotation = MirrorTM.Rotator();
 
 					BoneNewRotation.Yaw += CurrentBone.RotationOffset.Yaw;
 					BoneNewRotation.Roll += CurrentBone.RotationOffset.Roll;
 					BoneNewRotation.Pitch += CurrentBone.RotationOffset.Pitch;
 
-					MirrorTM.SetRotation(FQuat(BoneNewRotation));
+					MirrorTM.SetRotation(BoneNewRotation.Quaternion());
 					//MirrorTM.NormalizeRotation();
 					MirrorTM.SetScale3D(MirrorTM.GetScale3D().GetAbs());
 
@@ -432,44 +440,43 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					/////////////////////////////////
 				}
 
-				MirroredRawTrack.PosKeys = MirrorPosKeys;
-				MirroredRawTrack.RotKeys = MirrorRotKeys;
-				MirroredRawTrack.ScaleKeys = MirrorScaleKeys;
+				MirroredRawTrack.InternalTrackData.PosKeys = MirrorPosKeys;
+				MirroredRawTrack.InternalTrackData.RotKeys = MirrorRotKeys;
+				MirroredRawTrack.InternalTrackData.ScaleKeys = MirrorScaleKeys;
 
 				//Finally Setting it in the AnimSequence
 
-				MirrorSequence->AddNewRawTrack(CurrentBone.BoneName, &MirroredRawTrack);
+				//MirrorSequenceController.AddBoneTrack(CurrentBone.BoneName, &MirroredRawTrack);
+				MirrorSequenceController.AddBoneCurve(CurrentBone.BoneName);
+				MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,MirroredRawTrack.InternalTrackData.PosKeys,MirroredRawTrack.InternalTrackData.RotKeys,MirroredRawTrack.InternalTrackData.ScaleKeys);
 			}
 		}
-		MirrorSequence->ClearBakedTransformData();
-		MirrorSequence->RawCurveData.TransformCurves.Empty();
-		MirrorSequence->bNeedsRebake = false;
-		MirrorSequence->MarkRawDataAsModified();
-		MirrorSequence->OnRawDataChanged();
+		//MirrorSequence->ClearBakedTransformData();
+		MirrorSequenceController.RemoveAllCurvesOfType(ERawCurveTrackTypes::RCT_Transform);
 		MirrorSequence->MarkPackageDirty();
 	}
 }
 
 
-static FTransform GetAnimBoneTM(UAnimSequence* AnimSeq, const int32 BoneTreeIndex, const float AnimTime)
+static FTransform3f GetAnimBoneTM(UAnimSequence* AnimSeq, const int32 BoneTreeIndex, const float AnimTime)
 {
 	USkeleton* Skeleton = AnimSeq->GetSkeleton();
 	//int32 BoneTreeIndex = Skeleton->GetSkeletonBoneIndexFromMeshBoneIndex(SkelMesh, BoneTreeIndex);
 	int32 BoneTrackIndex = Skeleton->GetRawAnimationTrackIndex(BoneTreeIndex, AnimSeq);
 	if (BoneTrackIndex == INDEX_NONE)
 	{
-		return Skeleton->GetReferenceSkeleton().GetRefBonePose()[BoneTreeIndex];
+		return FTransform3f(Skeleton->GetReferenceSkeleton().GetRefBonePose()[BoneTreeIndex]);
 	}
 	FTransform BoneTM = FTransform::Identity;
 	AnimSeq->GetBoneTransform(BoneTM, BoneTrackIndex, AnimTime, true);
-	return BoneTM;
+	return FTransform3f(BoneTM);
 }
 
-static FTransform GetAnimBoneCSTM(UAnimSequence* AnimSeq, const int32 BoneTreeIndex, const float AnimTime)
+static FTransform3f GetAnimBoneCSTM(UAnimSequence* AnimSeq, const int32 BoneTreeIndex, const float AnimTime)
 {
 	USkeleton* Skeleton = AnimSeq->GetSkeleton();
 	const auto& RefSkeleton = Skeleton->GetReferenceSkeleton();
-	FTransform BoneTMWS = GetAnimBoneTM(AnimSeq, BoneTreeIndex, AnimTime);
+	FTransform3f BoneTMWS = GetAnimBoneTM(AnimSeq, BoneTreeIndex, AnimTime);
 	int32 CurrBone = BoneTreeIndex;
 	while (true)
 	{
@@ -493,15 +500,16 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 	const FString Substring_B, 
 	const bool Symmetrical)
 {
-	const int32 NumFrames = MirrorSequence->GetRawNumberOfFrames();
-	const float DT = MirrorSequence->SequenceLength / NumFrames;
+	IAnimationDataController& Controller = MirrorSequence->GetController();
+	const int32 NumFrames = Controller.GetModel()->GetNumberOfFrames();
+	const float DT = MirrorSequence->GetPlayLength() / NumFrames;
 
 	USkeleton* Skeleton = MirrorSequence->GetSkeleton();
 	const auto& RefSkeleton = Skeleton->GetReferenceSkeleton();
 
 	
-
-	TArray <bool> Already; Already.SetNumZeroed(Skeleton->GetBoneTree().Num());
+	
+	TArray <bool> Already; Already.SetNumZeroed(Skeleton->GetReferenceSkeleton().GetRawBoneNum());
 
 	TArray<FIntPoint> TwinPairs;
 	TArray<int32> NonTwinIDs;
@@ -510,7 +518,7 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 	const bool DeltaStep = !Symmetrical;
 
-	FVector TwinMirrorScale = FVector(1.f);
+	FVector3f TwinMirrorScale = FVector3f(1.f);
 	FVector TargetAxis = FVector::ZeroVector;
 
 	check(MirrorAxis != EAxis::None);
@@ -518,7 +526,7 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 		TwinMirrorScale[MirrorAxis - 1] = -1.f;
 		TargetAxis[MirrorAxis - 1] = 1.f;
 	}
-	FTransform TwinMirrorModTM(FQuat::Identity, FVector::ZeroVector, TwinMirrorScale);
+	FTransform3f TwinMirrorModTM(FQuat4f::Identity, FVector3f::ZeroVector, TwinMirrorScale);
 
 
 	TMap<int32, FRawAnimSequenceTrack> BoneTracks;
@@ -530,7 +538,7 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 	for (int32 j = 0; j < NumFrames; j++)
 	{
-		TArray <FTransform> NewCSTMs; NewCSTMs.SetNum(RefSkeleton.GetNum());
+		TArray <FTransform3f> NewCSTMs; NewCSTMs.SetNum(RefSkeleton.GetNum());
 
 		for (int32 i = 0; i < NonTwinIDs.Num(); i++)
 		{
@@ -542,17 +550,17 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 				const int32 ParentIndex = RefSkeleton.GetParentIndex(BoneTreeIndex);
 				if (ParentIndex != INDEX_NONE)
 				{
-					NewCSTMs[BoneTreeIndex] = RefSkeleton.GetRefBonePose()[BoneTreeIndex] * NewCSTMs[ParentIndex];
+					NewCSTMs[BoneTreeIndex] = FTransform3f(RefSkeleton.GetRefBonePose()[BoneTreeIndex]) * NewCSTMs[ParentIndex];
 				}
 				else
 				{
-					NewCSTMs[BoneTreeIndex] = RefSkeleton.GetRefBonePose()[BoneTreeIndex];
+					NewCSTMs[BoneTreeIndex] = FTransform3f(RefSkeleton.GetRefBonePose()[BoneTreeIndex]);
 				}
 
 				continue;
 			}
 
-			FTransform CSTM = GetAnimBoneCSTM(MirrorSequence, BoneTreeIndex, DT * j);
+			FTransform3f CSTM = GetAnimBoneCSTM(MirrorSequence, BoneTreeIndex, DT * j);
 			CSTM.Mirror(MirrorAxis, NonTwinFlipAxis[i]);
 
 			NewCSTMs[BoneTreeIndex] = CSTM;
@@ -568,12 +576,12 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 			const FCompactPoseBoneIndex TwinCmptBoneIndex(TwinBoneIndex);
 
-			const FTransform RefTM = FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, BoneIndex);
-			const FTransform TwinRefTM = FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, TwinBoneIndex);
+			const FTransform3f RefTM = FTransform3f(FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, BoneIndex));
+			const FTransform3f TwinRefTM = FTransform3f(FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, TwinBoneIndex));
 
-			const FTransform TM = GetAnimBoneCSTM(MirrorSequence, BoneIndex, DT * j); 
+			const FTransform3f TM = GetAnimBoneCSTM(MirrorSequence, BoneIndex, DT * j); 
 			//Output.Pose.GetComponentSpaceTransform(CmptBoneIndex);
-			const FTransform TwinTM = GetAnimBoneCSTM(MirrorSequence, TwinBoneIndex, DT * j); 
+			const FTransform3f TwinTM = GetAnimBoneCSTM(MirrorSequence, TwinBoneIndex, DT * j); 
 			//Output.Pose.GetComponentSpaceTransform(TwinCmptBoneIndex);
 
 			const int32 ParentIndex = RefSkeleton.GetParentIndex(BoneIndex);
@@ -581,49 +589,49 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 			const bool SameParent = ParentIndex == TwinParentIndex;
 
-			// twin 1º
+			// twin 1ï¿½
 			{
-				const FTransform MirrRef = RefTM * TwinMirrorModTM;
-				const FTransform Delta = TwinRefTM.GetRelativeTransform(MirrRef);
-				const FQuat DeltaQuat = Delta.GetRotation();
+				const UE::Math::TTransform<float> MirrRef = RefTM * TwinMirrorModTM;
+				const FTransform3f Delta = TwinRefTM.GetRelativeTransform(MirrRef);
+				const FQuat4f DeltaQuat = Delta.GetRotation();
 
-				FTransform MirrTM = TM * TwinMirrorModTM;
+				FTransform3f MirrTM = TM * TwinMirrorModTM;
 
-				MirrTM.SetRotation(MirrTM.GetRotation() * DeltaQuat);
+				MirrTM.SetRotation(MirrTM.GetRotation() * FQuat4f(DeltaQuat));
 				MirrTM.SetScale3D(TwinTM.GetScale3D());
 
 				if (DeltaStep)
 				{
 					if (SameParent)
 					{
-						FTransform RefBS = RefTM;
+						FTransform3f RefBS = RefTM;
 						RefBS = RefBS * TwinMirrorModTM;
-						const FVector PosDelta = MirrTM.GetLocation() - RefBS.GetLocation();
-						MirrTM.SetLocation(TwinRefTM.GetLocation() + PosDelta);
+						const FVector3f PosDelta = MirrTM.GetLocation() - RefBS.GetLocation();
+						MirrTM.SetLocation(FVector3f(TwinRefTM.GetLocation()) + PosDelta);
 					}
 					else
 					{
-						const FTransform& ParentTwinTM = NewCSTMs[RefSkeleton.GetParentIndex(TwinBoneIndex)];
-						const FTransform& IParentTM =// Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(ParentIndex));
+						const FTransform3f& ParentTwinTM = NewCSTMs[RefSkeleton.GetParentIndex(TwinBoneIndex)];
+						const FTransform3f& IParentTM =// Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(ParentIndex));
 							GetAnimBoneCSTM(MirrorSequence, ParentIndex, DT * j);
-						FTransform RefBS = RefSkeleton.GetRefBonePose()[BoneIndex] * IParentTM;
+						FTransform3f RefBS = FTransform3f(RefSkeleton.GetRefBonePose()[BoneIndex]) * IParentTM;
 						RefBS = RefBS * TwinMirrorModTM;
 						RefBS.SetRotation(RefBS.GetRotation() * DeltaQuat);
 						RefBS.SetScale3D(TwinTM.GetScale3D());
 
-						MirrTM = (MirrTM.GetRelativeTransform(RefBS) * RefSkeleton.GetRefBonePose()[TwinBoneIndex]) * ParentTwinTM;
+						MirrTM = (MirrTM.GetRelativeTransform(RefBS) * FTransform3f(RefSkeleton.GetRefBonePose()[TwinBoneIndex])) * ParentTwinTM;
 					}
 				}
 
 				NewCSTMs[TwinBoneIndex] = MirrTM;
 			}
 
-			// twin 2º
+			// twin 2ï¿½
 			{
-				FTransform TwinMirrRef = TwinRefTM * TwinMirrorModTM;
-				const FQuat TwinDeltaQuat = TwinMirrRef.GetRotation().Inverse() * RefTM.GetRotation();
+				FTransform3f TwinMirrRef = TwinRefTM * TwinMirrorModTM;
+				const FQuat4f TwinDeltaQuat = TwinMirrRef.GetRotation().Inverse() * RefTM.GetRotation();
 
-				FTransform TwinMirrTM = TwinTM * TwinMirrorModTM;
+				FTransform3f TwinMirrTM = TwinTM * TwinMirrorModTM;
 
 				TwinMirrTM.SetRotation(TwinMirrTM.GetRotation() * TwinDeltaQuat);
 				TwinMirrTM.SetScale3D(TM.GetScale3D());
@@ -632,22 +640,22 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 				{
 					if (SameParent)
 					{
-						FTransform TwinRefBS = TwinRefTM;
+						FTransform3f TwinRefBS = TwinRefTM;
 						TwinRefBS = TwinRefBS * TwinMirrorModTM;
-						const FVector PosDelta = TwinMirrTM.GetLocation() - TwinRefBS.GetLocation();
+						const FVector3f PosDelta = TwinMirrTM.GetLocation() - TwinRefBS.GetLocation();
 						TwinMirrTM.SetLocation(RefTM.GetLocation() + PosDelta);
 					}
 					else
 					{
-						const FTransform& ParentTM = NewCSTMs[RefSkeleton.GetParentIndex(BoneIndex)];
-						const FTransform& IParentTwinTM = //Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(TwinParentIndex));
+						const FTransform3f& ParentTM = NewCSTMs[RefSkeleton.GetParentIndex(BoneIndex)];
+						const FTransform3f& IParentTwinTM = //Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(TwinParentIndex));
 							GetAnimBoneCSTM(MirrorSequence, TwinParentIndex, DT * j);
-						FTransform TwinRefBS = RefSkeleton.GetRefBonePose()[TwinBoneIndex] * IParentTwinTM;
+						FTransform3f TwinRefBS = FTransform3f(RefSkeleton.GetRefBonePose()[TwinBoneIndex]) * IParentTwinTM;
 						TwinRefBS = TwinRefBS * TwinMirrorModTM;
 						TwinRefBS.SetRotation(TwinRefBS.GetRotation() * TwinDeltaQuat);
 						TwinRefBS.SetScale3D(TM.GetScale3D());
 
-						TwinMirrTM = (TwinMirrTM.GetRelativeTransform(TwinRefBS) * RefSkeleton.GetRefBonePose()[BoneIndex]) * ParentTM;
+						TwinMirrTM = (TwinMirrTM.GetRelativeTransform(TwinRefBS) * FTransform3f(RefSkeleton.GetRefBonePose()[BoneIndex]) * ParentTM);
 					}
 				}
 
@@ -659,7 +667,7 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 		for (int32 i = 0; i < NewCSTMs.Num(); i++)
 		{
 			const int32 ParentIndex = RefSkeleton.GetParentIndex(i);
-			FTransform BSTM;
+			FTransform3f BSTM;
 			if (ParentIndex != INDEX_NONE) BSTM = NewCSTMs[i].GetRelativeTransform(NewCSTMs[ParentIndex]);
 			else BSTM = NewCSTMs[i];
 
@@ -673,11 +681,13 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 	for (auto Pair : BoneTracks)
 	{
 		const FName TrackName = Skeleton->GetReferenceSkeleton().GetBoneName(Pair.Key);
-		MirrorSequence->AddNewRawTrack(TrackName, &Pair.Value);
+		//MirrorSequence->AddNewRawTrack(TrackName, &Pair.Value);
+		Controller.AddBoneCurve(TrackName);
+		Controller.SetBoneTrackKeys(TrackName,Pair.Value.PosKeys,Pair.Value.RotKeys,Pair.Value.ScaleKeys);
+	
 	}
 	// Have to also apply to pelvis and spine_01
-	MirrorSequence->MarkRawDataAsModified();
-	MirrorSequence->OnRawDataChanged();
+
 	MirrorSequence->MarkPackageDirty();
 }
 
