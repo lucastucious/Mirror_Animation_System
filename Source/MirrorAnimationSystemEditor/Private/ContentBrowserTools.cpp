@@ -195,11 +195,11 @@ public:
 		for (auto AssetIt = SelectedAssets.CreateConstIterator(); AssetIt; ++AssetIt)
 		{
 			const FAssetData& Asset = *AssetIt;
-			bShowButton = bShowButton || (Asset.AssetClass == UAnimSequence::StaticClass()->GetFName()) || (Asset.AssetClass == USkeleton::StaticClass()->GetFName());
-			bIsSkeletonAsset = (Asset.AssetClass == USkeleton::StaticClass()->GetFName());
+			bShowButton = bShowButton || (Asset.AssetClassPath == UAnimSequence::StaticClass()->GetClassPathName()) || (Asset.AssetClassPath == USkeleton::StaticClass()->GetClassPathName());
+			bIsSkeletonAsset = (Asset.AssetClassPath == USkeleton::StaticClass()->GetClassPathName());
 		}
 
-		if (bShowButton)
+		if (bShowButton) //@TODO: This should be true !!
 		{
 			if (bIsSkeletonAsset)
 			{

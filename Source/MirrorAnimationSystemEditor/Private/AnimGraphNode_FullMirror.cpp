@@ -23,7 +23,7 @@ FText UAnimGraphNode_FullMirror::GetTooltipText() const
 
 FText UAnimGraphNode_FullMirror::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	return LOCTEXT("Mirror_Pose", "Mirror Pose");
+	return LOCTEXT("FullMirror_Pose", "Full Mirror Pose");
 }
 
 FString UAnimGraphNode_FullMirror::GetNodeCategory() const

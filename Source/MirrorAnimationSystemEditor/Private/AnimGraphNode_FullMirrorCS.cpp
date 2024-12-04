@@ -18,12 +18,12 @@ FLinearColor UAnimGraphNode_FullMirrorCS::GetNodeTitleColor() const
 
 FText UAnimGraphNode_FullMirrorCS::GetControllerDescription() const
 {
-	return LOCTEXT("AnimGraphNode_MirrorCS", "Mirror Pose CS");
+	return LOCTEXT("AnimGraphNode_FullMirrorCS", "Full Mirror Pose CS");
 }
 
 FText UAnimGraphNode_FullMirrorCS::GetTooltipText() const
 {
-	return LOCTEXT("AnimGraphNode_MirrorCS_Tooltip", "Mirror the pose in Component Space.");
+	return LOCTEXT("AnimGraphNode_FullMirrorCS_Tooltip", "Full Mirror the pose in Component Space.");
 }
 
 FText UAnimGraphNode_FullMirrorCS::GetNodeTitle(ENodeTitleType::Type TitleType) const
@@ -35,7 +35,7 @@ FText UAnimGraphNode_FullMirrorCS::GetNodeTitle(ENodeTitleType::Type TitleType) 
 	}
 	else
 	{
-		NodeTitle = FText(LOCTEXT("AnimGraphNode_MirrorCS_Title", "Mirror Pose CS"));
+		NodeTitle = FText(LOCTEXT("AnimGraphNode_FullMirrorCS_Title", "Full Mirror Pose CS"));
 	}
 	return NodeTitle;
 }
