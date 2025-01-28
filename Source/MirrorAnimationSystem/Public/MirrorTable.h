@@ -15,25 +15,25 @@ struct MIRRORANIMATIONSYSTEM_API FMirrorBone
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		FName BoneName;
+	FName BoneName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		TEnumAsByte<EAxis::Type> MirrorAxis;
+	TEnumAsByte<EAxis::Type> MirrorAxis = EAxis::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		TEnumAsByte<EAxis::Type> FlipAxis;
+	TEnumAsByte<EAxis::Type> FlipAxis = EAxis::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		FRotator RotationOffset;
+	FRotator RotationOffset = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		bool IsTwinBone;
-	
+	bool IsTwinBone = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		FName TwinBoneName;
-	
+	FName TwinBoneName;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorAnimation")
-		bool MirrorTranslation;
+	bool MirrorTranslation = false;
 };
 
 /*Data asset class that holds the MirrorBone's parameters for an entire skeleton, 
@@ -42,8 +42,8 @@ UCLASS(BlueprintType)
 class MIRRORANIMATIONSYSTEM_API UMirrorTable : public UDataAsset
 {
 	GENERATED_BODY()
+
 public:
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorBoneSettings")
-		TArray <FMirrorBone> MirrorBones;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MirrorBoneSettings")
+	TArray<FMirrorBone> MirrorBones;
 };
