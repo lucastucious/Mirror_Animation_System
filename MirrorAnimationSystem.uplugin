@@ -11,7 +11,7 @@
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/36b1fe6319794a25ab6dfffb82e1b29b",
 	"SupportURL": "https://github.com/Rexocrates/Mirror_Animation_System/issues",
 	"EngineVersion": "5.4.0",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"Installed": true,
 	"Modules": [
 		{
