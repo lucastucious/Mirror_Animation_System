@@ -28,10 +28,17 @@ UMASFunctionLibrary::UMASFunctionLibrary(const FObjectInitializer& ObjectInitial
 {
 }
 
-void UMASFunctionLibrary::BulkMirrorEditorOnly(const TArray <UAnimSequence*> SourceAnims, const UMirrorTable* MirrorTable, TArray <UAnimSequence*>& OutNewAnims)
+void UMASFunctionLibrary::BulkMirrorEditorOnly(const TArray<UAnimSequence*> SourceAnims,
+                                               const UMirrorTable* MirrorTable, TArray<UAnimSequence*>& OutNewAnims)
 {
-	if (SourceAnims.Num() == 0) return;
-	if (MirrorTable == NULL) return;
+	if (SourceAnims.Num() == 0)
+	{
+		return;
+	}
+	if (MirrorTable == nullptr)
+	{
+		return;
+	}
 
 #if WITH_EDITOR
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
@@ -45,13 +52,14 @@ void UMASFunctionLibrary::BulkMirrorEditorOnly(const TArray <UAnimSequence*> Sou
 
 		FString Suffix = TEXT("_Mirrored");
 
-		AssetToolsModule.Get().CreateUniqueAssetName(SourceAnims[i]->GetOutermost()->GetName(), Suffix, /*out*/ PackageName, /*out*/ Name);
+		AssetToolsModule.Get().CreateUniqueAssetName(SourceAnims[i]->GetOutermost()->GetName(), Suffix, /*out*/
+		                                             PackageName, /*out*/ Name);
 		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
 
 
 		UObject* NewAsset = AssetToolsModule.Get().DuplicateAsset(Name, PackagePath, SourceAnims[i]);
 
-		if (NewAsset != NULL)
+		if (NewAsset != nullptr)
 		{
 			UAnimSequence* MirrorAnimSequence = Cast<UAnimSequence>(NewAsset);
 			CreateMirrorSequenceFromAnimSequence(MirrorAnimSequence, MirrorTable);
@@ -64,13 +72,21 @@ void UMASFunctionLibrary::BulkMirrorEditorOnly(const TArray <UAnimSequence*> Sou
 			// Display notification so users can quickly access
 			if (GIsEditor)
 			{
-				FNotificationInfo Info(FText::Format(LOCTEXT("AnimationMirrored", "Successfully Mirrored Animation"), FText::FromString(MirrorAnimSequence->GetName())));
+				FNotificationInfo Info(FText::Format(
+					LOCTEXT("AnimationMirrored", "Successfully Mirrored Animation"),
+					FText::FromString(MirrorAnimSequence->GetName())));
 				Info.ExpireDuration = 8.0f;
 				Info.bUseLargeFont = false;
 				//Info.Hyperlink = FSimpleDelegate::CreateLambda([=]() { FAssetEditorManager::Get().OpenEditorForAssets(TArray<UObject*>({ MirrorAnimSequence })); });
-				Info.Hyperlink = FSimpleDelegate::CreateLambda([=]() { GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAssets(TArray<UObject*>({ MirrorAnimSequence })); });
+				Info.Hyperlink = FSimpleDelegate::CreateLambda([=]()
+				{
+					GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAssets(TArray<UObject*>({
+						MirrorAnimSequence
+					}));
+				});
 
-				Info.HyperlinkText = FText::Format(LOCTEXT("OpenNewAnimationHyperlink", "Open {0}"), FText::FromString(MirrorAnimSequence->GetName()));
+				Info.HyperlinkText = FText::Format(
+					LOCTEXT("OpenNewAnimationHyperlink", "Open {0}"), FText::FromString(MirrorAnimSequence->GetName()));
 				TSharedPtr<SNotificationItem> Notification = FSlateNotificationManager::Get().AddNotification(Info);
 				if (Notification.IsValid())
 				{
@@ -83,11 +99,18 @@ void UMASFunctionLibrary::BulkMirrorEditorOnly(const TArray <UAnimSequence*> Sou
 }
 
 MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::BulkMirror_CS_EditorOnly(
-	const TArray<UAnimSequence*> SourceAnims, 
-	const TEnumAsByte<EAxis::Type> MirrorAxis, const FString Substring_A, const FString Substring_B, const bool Symmetrical, TArray<UAnimSequence*>& OutNewAnims)
+	const TArray<UAnimSequence*> SourceAnims,
+	const TEnumAsByte<EAxis::Type> MirrorAxis, const FString Substring_A, const FString Substring_B,
+	const bool Symmetrical, TArray<UAnimSequence*>& OutNewAnims)
 {
-	if (SourceAnims.Num() == 0) return;
-	if (MirrorAxis == EAxis::None) return;
+	if (SourceAnims.Num() == 0)
+	{
+		return;
+	}
+	if (MirrorAxis == EAxis::None)
+	{
+		return;
+	}
 
 #if WITH_EDITOR
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
@@ -101,16 +124,18 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::BulkMirror_CS_EditorOnly(
 
 		FString Suffix = TEXT("_Mirrored");
 
-		AssetToolsModule.Get().CreateUniqueAssetName(SourceAnims[i]->GetOutermost()->GetName(), Suffix, /*out*/ PackageName, /*out*/ Name);
+		AssetToolsModule.Get().CreateUniqueAssetName(SourceAnims[i]->GetOutermost()->GetName(), Suffix, /*out*/
+		                                             PackageName, /*out*/ Name);
 		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
 
 
 		UObject* NewAsset = AssetToolsModule.Get().DuplicateAsset(Name, PackagePath, SourceAnims[i]);
 
-		if (NewAsset != NULL)
+		if (NewAsset != nullptr)
 		{
 			UAnimSequence* MirrorAnimSequence = Cast<UAnimSequence>(NewAsset);
-			CreateMirrorSequenceFromAnimSequence_CS(MirrorAnimSequence, MirrorAxis, Substring_A, Substring_B, Symmetrical);
+			CreateMirrorSequenceFromAnimSequence_CS(MirrorAnimSequence, MirrorAxis, Substring_A, Substring_B,
+			                                        Symmetrical);
 
 			OutNewAnims.Add(MirrorAnimSequence);
 
@@ -120,13 +145,21 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::BulkMirror_CS_EditorOnly(
 			// Display notification so users can quickly access
 			if (GIsEditor)
 			{
-				FNotificationInfo Info(FText::Format(LOCTEXT("AnimationMirrored", "Successfully Mirrored Animation"), FText::FromString(MirrorAnimSequence->GetName())));
+				FNotificationInfo Info(FText::Format(
+					LOCTEXT("AnimationMirrored", "Successfully Mirrored Animation"),
+					FText::FromString(MirrorAnimSequence->GetName())));
 				Info.ExpireDuration = 8.0f;
 				Info.bUseLargeFont = false;
 				//Info.Hyperlink = FSimpleDelegate::CreateLambda([=]() { FAssetEditorManager::Get().OpenEditorForAssets(TArray<UObject*>({ MirrorAnimSequence })); });
-				Info.Hyperlink = FSimpleDelegate::CreateLambda([=]() { GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAssets(TArray<UObject*>({ MirrorAnimSequence })); });
+				Info.Hyperlink = FSimpleDelegate::CreateLambda([=]()
+				{
+					GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAssets(TArray<UObject*>({
+						MirrorAnimSequence
+					}));
+				});
 
-				Info.HyperlinkText = FText::Format(LOCTEXT("OpenNewAnimationHyperlink", "Open {0}"), FText::FromString(MirrorAnimSequence->GetName()));
+				Info.HyperlinkText = FText::Format(
+					LOCTEXT("OpenNewAnimationHyperlink", "Open {0}"), FText::FromString(MirrorAnimSequence->GetName()));
 				TSharedPtr<SNotificationItem> Notification = FSlateNotificationManager::Get().AddNotification(Info);
 				if (Notification.IsValid())
 				{
@@ -140,10 +173,11 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::BulkMirror_CS_EditorOnly(
 
 #if WITH_EDITOR
 
-void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* MirrorSequence, const UMirrorTable* MirrorTable)
+void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* MirrorSequence,
+                                                               const UMirrorTable* MirrorTable)
 {
 	//Check if it's valid
-	if ((MirrorSequence != NULL) && (MirrorTable != NULL) && (MirrorSequence->GetSkeleton() != NULL))
+	if ((MirrorSequence != nullptr) && (MirrorTable != nullptr) && (MirrorSequence->GetSkeleton() != nullptr))
 	{
 		//Make the duplicate that I will edit
 		//UAnimSequence* MirrorSequence = FromAnimSequence;
@@ -153,12 +187,13 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 
 		int NumFrames = MirrorSequence->GetNumberOfFrames();
 		IAnimationDataController& MirrorSequenceController = MirrorSequence->GetController();
-		TArray<FBoneAnimationTrack> SourceBoneAnimData = MirrorSequenceController.GetModel()->GetBoneAnimationTracks();
+		const TArray<FBoneAnimationTrack>& SourceBoneAnimData = MirrorSequenceController.GetModel()->
+			GetBoneAnimationTracks();
 		/************* SourceRawAnimDatas should be replaced by SourceBoneAnimData ************/
 		// TArray<FRawAnimSequenceTrack> SourceRawAnimDatas = MirrorSequence->GetRawAnimationData();
-		
-		TArray<FName> TrackNames;
-		MirrorSequenceController.GetModel()->GetBoneTrackNames(TrackNames);
+
+		TArray<FName>* TrackNames = new TArray<FName>;
+		MirrorSequenceController.GetModel()->GetBoneTrackNames(*TrackNames);
 
 		for (int i = 0; i < NumMirrorBones; i++)
 		{
@@ -176,25 +211,26 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					continue;
 				}
 
-				int32 TrackIndex = TrackNames.IndexOfByKey(CurrentBone.BoneName);
-				int32 TwinTrackIndex = TrackNames.IndexOfByKey(CurrentBone.TwinBoneName);
+				int32 TrackIndex = TrackNames->IndexOfByKey(CurrentBone.BoneName);
+				int32 TwinTrackIndex = TrackNames->IndexOfByKey(CurrentBone.TwinBoneName);
 
 				if (TrackIndex == INDEX_NONE && TwinTrackIndex == INDEX_NONE)
 				{
 					continue;
 				}
 
-				TArray <FVector3f> MirrorPosKeys;
-				TArray <FQuat4f> MirrorRotKeys;
-				TArray <FVector3f> MirrorScaleKeys;
+				TArray<FVector3f> MirrorPosKeys;
+				TArray<FQuat4f> MirrorRotKeys;
+				TArray<FVector3f> MirrorScaleKeys;
 
-				TArray <FVector3f> TwinMirrorPosKeys;
-				TArray <FQuat4f> TwinMirrorRotKeys;
-				TArray <FVector3f> TwinMirrorScaleKeys;
+				TArray<FVector3f> TwinMirrorPosKeys;
+				TArray<FQuat4f> TwinMirrorRotKeys;
+				TArray<FVector3f> TwinMirrorScaleKeys;
 
 				// Original Bone
 				if (TrackIndex != INDEX_NONE)
 				{
+					check(SourceBoneAnimData.Num()>0);
 					auto& MirroredRawTrack = SourceBoneAnimData[TrackIndex];
 
 					for (int u = 0; u < NumFrames; u++)
@@ -222,8 +258,8 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 						}
 
 						MirrorTM.Mirror(CurrentBone.MirrorAxis, CurrentBone.FlipAxis);
-						
-						
+
+
 						FRotator3f BoneNewRotation = MirrorTM.Rotator(); // quaternion to rotator
 
 						BoneNewRotation.Yaw += CurrentBone.RotationOffset.Yaw;
@@ -353,7 +389,8 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 
 					//MirrorSequence->AddNewRawTrack(CurrentBone.TwinBoneName, &NewTrack);
 					MirrorSequenceController.AddBoneTrack(CurrentBone.TwinBoneName);
-					MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,NewTrack.PosKeys,NewTrack.RotKeys,NewTrack.ScaleKeys);
+					MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName, NewTrack.PosKeys, NewTrack.RotKeys,
+					                                          NewTrack.ScaleKeys);
 				}
 
 				// Twin Bone -> Original Bone
@@ -365,12 +402,14 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 					NewTrack.ScaleKeys = TwinMirrorScaleKeys;
 
 					MirrorSequenceController.AddBoneTrack(CurrentBone.BoneName);
-					MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,NewTrack.PosKeys,NewTrack.RotKeys,NewTrack.ScaleKeys);
+					MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName, NewTrack.PosKeys, NewTrack.RotKeys,
+					                                          NewTrack.ScaleKeys);
 				}
 			}
 			else
 			{
-				int32 TrackIndex = TrackNames.IndexOfByKey(CurrentBone.BoneName);
+				if (TrackNames) { continue; }
+				int32 TrackIndex = TrackNames->IndexOfByKey(CurrentBone.BoneName);
 
 				if (TrackIndex == INDEX_NONE)
 				{
@@ -380,9 +419,9 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 				FBoneAnimationTrack MirroredRawTrack = SourceBoneAnimData[TrackIndex];
 
 				//MirrorAllFrames
-				TArray <FVector3f> MirrorPosKeys;
-				TArray <FQuat4f> MirrorRotKeys;
-				TArray <FVector3f> MirrorScaleKeys;
+				TArray<FVector3f> MirrorPosKeys;
+				TArray<FQuat4f> MirrorRotKeys;
+				TArray<FVector3f> MirrorScaleKeys;
 
 				for (int u = 0; u < NumFrames; u++)
 				{
@@ -448,7 +487,10 @@ void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence(UAnimSequence* Mi
 
 				//MirrorSequenceController.AddBoneTrack(CurrentBone.BoneName, &MirroredRawTrack);
 				MirrorSequenceController.AddBoneCurve(CurrentBone.BoneName);
-				MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,MirroredRawTrack.InternalTrackData.PosKeys,MirroredRawTrack.InternalTrackData.RotKeys,MirroredRawTrack.InternalTrackData.ScaleKeys);
+				MirrorSequenceController.SetBoneTrackKeys(CurrentBone.BoneName,
+				                                          MirroredRawTrack.InternalTrackData.PosKeys,
+				                                          MirroredRawTrack.InternalTrackData.RotKeys,
+				                                          MirroredRawTrack.InternalTrackData.ScaleKeys);
 			}
 		}
 		//MirrorSequence->ClearBakedTransformData();
@@ -481,14 +523,13 @@ static FTransform3f GetAnimBoneCSTM(UAnimSequence* AnimSeq, const int32 BoneTree
 	while (true)
 	{
 		const int32 Parent(RefSkeleton.GetParentIndex(CurrBone));
-		if (Parent < 0) break;
-		else
+		if (Parent < 0)
 		{
-			
-			BoneTMWS = BoneTMWS * GetAnimBoneTM(AnimSeq, Parent, AnimTime);
-
-			CurrBone = Parent;
+			break;
 		}
+		BoneTMWS = BoneTMWS * GetAnimBoneTM(AnimSeq, Parent, AnimTime);
+
+		CurrBone = Parent;
 	}
 	return BoneTMWS;
 }
@@ -496,8 +537,8 @@ static FTransform3f GetAnimBoneCSTM(UAnimSequence* AnimSeq, const int32 BoneTree
 MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromAnimSequence_CS(
 	UAnimSequence* MirrorSequence,
 	const TEnumAsByte<EAxis::Type> MirrorAxis,
-	const FString Substring_A, 
-	const FString Substring_B, 
+	const FString Substring_A,
+	const FString Substring_B,
 	const bool Symmetrical)
 {
 	IAnimationDataController& Controller = MirrorSequence->GetController();
@@ -507,14 +548,15 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 	USkeleton* Skeleton = MirrorSequence->GetSkeleton();
 	const auto& RefSkeleton = Skeleton->GetReferenceSkeleton();
 
-	
-	
-	TArray <bool> Already; Already.SetNumZeroed(Skeleton->GetReferenceSkeleton().GetRawBoneNum());
+
+	TArray<bool> Already;
+	Already.SetNumZeroed(Skeleton->GetReferenceSkeleton().GetRawBoneNum());
 
 	TArray<FIntPoint> TwinPairs;
 	TArray<int32> NonTwinIDs;
 	TArray<EAxis::Type> NonTwinFlipAxis;
-	FMASUtils::CSMirrorSettings(RefSkeleton, MirrorAxis, Substring_A, Substring_B, TwinPairs, NonTwinIDs, NonTwinFlipAxis);
+	FMASUtils::CSMirrorSettings(RefSkeleton, MirrorAxis, Substring_A, Substring_B, TwinPairs, NonTwinIDs,
+	                            NonTwinFlipAxis);
 
 	const bool DeltaStep = !Symmetrical;
 
@@ -530,7 +572,7 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 
 	TMap<int32, FRawAnimSequenceTrack> BoneTracks;
-	
+
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
 		BoneTracks.Add(i, FRawAnimSequenceTrack());
@@ -538,7 +580,8 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 	for (int32 j = 0; j < NumFrames; j++)
 	{
-		TArray <FTransform3f> NewCSTMs; NewCSTMs.SetNum(RefSkeleton.GetNum());
+		TArray<FTransform3f> NewCSTMs;
+		NewCSTMs.SetNum(RefSkeleton.GetNum());
 
 		for (int32 i = 0; i < NonTwinIDs.Num(); i++)
 		{
@@ -550,7 +593,8 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 				const int32 ParentIndex = RefSkeleton.GetParentIndex(BoneTreeIndex);
 				if (ParentIndex != INDEX_NONE)
 				{
-					NewCSTMs[BoneTreeIndex] = FTransform3f(RefSkeleton.GetRefBonePose()[BoneTreeIndex]) * NewCSTMs[ParentIndex];
+					NewCSTMs[BoneTreeIndex] = FTransform3f(RefSkeleton.GetRefBonePose()[BoneTreeIndex]) * NewCSTMs[
+						ParentIndex];
 				}
 				else
 				{
@@ -576,12 +620,14 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 
 			const FCompactPoseBoneIndex TwinCmptBoneIndex(TwinBoneIndex);
 
-			const FTransform3f RefTM = FTransform3f(FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, BoneIndex));
-			const FTransform3f TwinRefTM = FTransform3f(FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, TwinBoneIndex));
+			const FTransform3f RefTM = FTransform3f(
+				FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, BoneIndex));
+			const FTransform3f TwinRefTM = FTransform3f(
+				FAnimationRuntime::GetComponentSpaceTransformRefPose(RefSkeleton, TwinBoneIndex));
 
-			const FTransform3f TM = GetAnimBoneCSTM(MirrorSequence, BoneIndex, DT * j); 
+			const FTransform3f TM = GetAnimBoneCSTM(MirrorSequence, BoneIndex, DT * j);
 			//Output.Pose.GetComponentSpaceTransform(CmptBoneIndex);
-			const FTransform3f TwinTM = GetAnimBoneCSTM(MirrorSequence, TwinBoneIndex, DT * j); 
+			const FTransform3f TwinTM = GetAnimBoneCSTM(MirrorSequence, TwinBoneIndex, DT * j);
 			//Output.Pose.GetComponentSpaceTransform(TwinCmptBoneIndex);
 
 			const int32 ParentIndex = RefSkeleton.GetParentIndex(BoneIndex);
@@ -612,14 +658,16 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 					else
 					{
 						const FTransform3f& ParentTwinTM = NewCSTMs[RefSkeleton.GetParentIndex(TwinBoneIndex)];
-						const FTransform3f& IParentTM =// Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(ParentIndex));
+						const FTransform3f& IParentTM =
+							// Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(ParentIndex));
 							GetAnimBoneCSTM(MirrorSequence, ParentIndex, DT * j);
 						FTransform3f RefBS = FTransform3f(RefSkeleton.GetRefBonePose()[BoneIndex]) * IParentTM;
 						RefBS = RefBS * TwinMirrorModTM;
 						RefBS.SetRotation(RefBS.GetRotation() * DeltaQuat);
 						RefBS.SetScale3D(TwinTM.GetScale3D());
 
-						MirrTM = (MirrTM.GetRelativeTransform(RefBS) * FTransform3f(RefSkeleton.GetRefBonePose()[TwinBoneIndex])) * ParentTwinTM;
+						MirrTM = (MirrTM.GetRelativeTransform(RefBS) * FTransform3f(
+							RefSkeleton.GetRefBonePose()[TwinBoneIndex])) * ParentTwinTM;
 					}
 				}
 
@@ -648,14 +696,17 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 					else
 					{
 						const FTransform3f& ParentTM = NewCSTMs[RefSkeleton.GetParentIndex(BoneIndex)];
-						const FTransform3f& IParentTwinTM = //Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(TwinParentIndex));
+						const FTransform3f& IParentTwinTM =
+							//Output.Pose.GetComponentSpaceTransform(FCompactPoseBoneIndex(TwinParentIndex));
 							GetAnimBoneCSTM(MirrorSequence, TwinParentIndex, DT * j);
-						FTransform3f TwinRefBS = FTransform3f(RefSkeleton.GetRefBonePose()[TwinBoneIndex]) * IParentTwinTM;
+						FTransform3f TwinRefBS = FTransform3f(RefSkeleton.GetRefBonePose()[TwinBoneIndex]) *
+							IParentTwinTM;
 						TwinRefBS = TwinRefBS * TwinMirrorModTM;
 						TwinRefBS.SetRotation(TwinRefBS.GetRotation() * TwinDeltaQuat);
 						TwinRefBS.SetScale3D(TM.GetScale3D());
 
-						TwinMirrTM = (TwinMirrTM.GetRelativeTransform(TwinRefBS) * FTransform3f(RefSkeleton.GetRefBonePose()[BoneIndex]) * ParentTM);
+						TwinMirrTM = (TwinMirrTM.GetRelativeTransform(TwinRefBS) * FTransform3f(
+							RefSkeleton.GetRefBonePose()[BoneIndex]) * ParentTM);
 					}
 				}
 
@@ -668,8 +719,14 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 		{
 			const int32 ParentIndex = RefSkeleton.GetParentIndex(i);
 			FTransform3f BSTM;
-			if (ParentIndex != INDEX_NONE) BSTM = NewCSTMs[i].GetRelativeTransform(NewCSTMs[ParentIndex]);
-			else BSTM = NewCSTMs[i];
+			if (ParentIndex != INDEX_NONE)
+			{
+				BSTM = NewCSTMs[i].GetRelativeTransform(NewCSTMs[ParentIndex]);
+			}
+			else
+			{
+				BSTM = NewCSTMs[i];
+			}
 
 			auto& BoneTrack = BoneTracks[i];
 			BoneTrack.PosKeys.Add(BSTM.GetLocation());
@@ -683,8 +740,7 @@ MIRRORANIMATIONSYSTEMDEV_API void UMASFunctionLibrary::CreateMirrorSequenceFromA
 		const FName TrackName = Skeleton->GetReferenceSkeleton().GetBoneName(Pair.Key);
 		//MirrorSequence->AddNewRawTrack(TrackName, &Pair.Value);
 		Controller.AddBoneCurve(TrackName);
-		Controller.SetBoneTrackKeys(TrackName,Pair.Value.PosKeys,Pair.Value.RotKeys,Pair.Value.ScaleKeys);
-	
+		Controller.SetBoneTrackKeys(TrackName, Pair.Value.PosKeys, Pair.Value.RotKeys, Pair.Value.ScaleKeys);
 	}
 	// Have to also apply to pelvis and spine_01
 
